@@ -69,109 +69,6 @@ function Menu.UpdateCategoriesFromTopTab()
     end
 end
 
-Menu.Banner = {
-    enabled = true,
-    imageUrl = "https://i.imgur.com/JOU96CX.gif",
-    height = 100
-}
-
-Menu.bannerTexture = nil
-Menu.bannerWidth = 0
-Menu.bannerHeight = 0
-
-function Menu.LoadBannerTexture(url)
-    if not url or url == "" then return end
-    if not Susano or not Susano.HttpGet or not Susano.LoadTextureFromBuffer then return end
-
-    if CreateThread then
-        CreateThread(function()
-            local success, result = pcall(function()
-                local status, body = Susano.HttpGet(url)
-                if status == 200 and body and #body > 0 then
-                    local textureId, width, height = Susano.LoadTextureFromBuffer(body)
-                    if textureId and textureId ~= 0 then
-                        Menu.bannerTexture = textureId
-                        Menu.bannerWidth = width
-                        Menu.bannerHeight = height
-                        return textureId
-                    end
-                end
-                return nil
-            end)
-            if not success then
-            end
-        end)
-    else
-        local success, result = pcall(function()
-            local status, body = Susano.HttpGet(url)
-            if status == 200 and body and #body > 0 then
-                local textureId, width, height = Susano.LoadTextureFromBuffer(body)
-                if textureId and textureId ~= 0 then
-                    Menu.bannerTexture = textureId
-                    Menu.bannerWidth = width
-                    Menu.bannerHeight = height
-                    print("Banner texture loaded successfully")
-                    return textureId
-                end
-            end
-            return nil
-        end)
-        if not success then
-        end
-    end
-end
-
-Menu.Colors = {
-    HeaderPink = { r = 148, g = 0, b = 211 },
-    SelectedBg = { r = 148, g = 0, b = 211 },
-    TextWhite = { r = 255, g = 255, b = 255 },
-    BackgroundDark = { r = 0, g = 0, b = 0 },
-    FooterBlack = { r = 0, g = 0, b = 0 }
-}
-
-Menu.CurrentTheme = "Purple"
-
-function Menu.ApplyTheme(themeName)
-    if not themeName or type(themeName) ~= "string" then
-        themeName = "Purple"
-    end
-    
-
-    local themeLower = string.lower(themeName)
-    Menu.CurrentTheme = themeName
-    
-    if themeLower == "red" then
-        Menu.Colors.HeaderPink = { r = 255, g = 0, b = 0 }
-        Menu.Colors.SelectedBg = { r = 255, g = 0, b = 0 }
-        Menu.Banner.imageUrl = "https://i.imgur.com/JOU96CX.gif"
-        Menu.CurrentTheme = "Red"
-    elseif themeLower == "purple" then
-        Menu.Colors.HeaderPink = { r = 148, g = 0, b = 211 }
-        Menu.Colors.SelectedBg = { r = 148, g = 0, b = 211 }
-        Menu.Banner.imageUrl = "https://i.imgur.com/OBikOJo.png"
-        Menu.CurrentTheme = "Purple"
-    elseif themeLower == "gray" then
-        Menu.Colors.HeaderPink = { r = 128, g = 128, b = 128 }
-        Menu.Colors.SelectedBg = { r = 128, g = 128, b = 128 }
-        Menu.Banner.imageUrl = "https://i.imgur.com/7MAG8ho.jpeg"
-        Menu.CurrentTheme = "Gray"
-    elseif themeLower == "pink" then
-        Menu.Colors.HeaderPink = { r = 255, g = 20, b = 147 }
-        Menu.Colors.SelectedBg = { r = 255, g = 20, b = 147 }
-        Menu.Banner.imageUrl = "https://i.imgur.com/OBikOJo.png"
-        Menu.CurrentTheme = "pink"
-    else
-        Menu.Colors.HeaderPink = { r = 148, g = 0, b = 211 }
-        Menu.Colors.SelectedBg = { r = 148, g = 0, b = 211 }
-        Menu.Banner.imageUrl = "https://i.imgur.com/OBikOJo.png"
-        Menu.CurrentTheme = "Purple"
-    end
-
-    if Menu.Banner.enabled and Menu.Banner.imageUrl then
-        Menu.LoadBannerTexture(Menu.Banner.imageUrl)
-    end
-end
-
 Menu.Position = {
     x = 50,
     y = 100,
@@ -1415,6 +1312,66 @@ function Menu.DrawLoadingBar(alpha)
         local textY = centerY - radius - 40
         Menu.DrawText(textX, textY, loadingText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
     end
+
+    local segments = 90
+    local step = 360 / segments
+    local startAngle = -90
+
+    for i = 0, segments do
+        local angle = math.rad(startAngle + (i * step))
+        local px = centerX + radius * math.cos(angle)
+        local py = centerY + radius * math.sin(angle)
+        local outlineSize = thickness + 4
+        
+        if Susano and Susano.DrawRectFilled then
+            Susano.DrawRectFilled(px - outlineSize/2, py - outlineSize/2, outlineSize, outlineSize, 0.0, 0.0, 0.0, 1.0 * alpha, outlineSize/2)
+        else
+            Menu.DrawRect(px - outlineSize/2, py - outlineSize/2, outlineSize, outlineSize, 0, 0, 0, 255 * alpha)
+        end
+    end
+
+    for i = 0, segments do
+        local angle = math.rad(startAngle + (i * step))
+        local px = centerX + radius * math.cos(angle)
+        local py = centerY + radius * math.sin(angle)
+        
+        if Susano and Susano.DrawRectFilled then
+            Susano.DrawRectFilled(px - thickness/2, py - thickness/2, thickness, thickness, 0.15, 0.15, 0.15, 1.0 * alpha, thickness/2)
+        else
+            Menu.DrawRect(px - thickness/2, py - thickness/2, thickness, thickness, 38, 38, 38, 255 * alpha)
+        end
+    end
+
+    local progressSegments = math.floor(segments * (Menu.LoadingProgress / 100.0))
+    local accentR = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.r) and (Menu.Colors.SelectedBg.r / 255.0) or 1.0
+    local accentG = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.g) and (Menu.Colors.SelectedBg.g / 255.0) or 0.0
+    local accentB = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.b) and (Menu.Colors.SelectedBg.b / 255.0) or 1.0
+
+    for i = 0, progressSegments do
+        local angle = math.rad(startAngle + (i * step))
+        local px = centerX + radius * math.cos(angle)
+        local py = centerY + radius * math.sin(angle)
+        
+        if Susano and Susano.DrawRectFilled then
+            Susano.DrawRectFilled(px - thickness/2, py - thickness/2, thickness + 1, thickness + 1, accentR, accentG, accentB, 1.0 * alpha, (thickness + 1)/2)
+        else
+            Menu.DrawRect(px - thickness/2, py - thickness/2, thickness + 1, thickness + 1, accentR * 255, accentG * 255, accentB * 255, 255 * alpha)
+        end
+    end
+
+    local percentText = string.format("%.0f%%", Menu.LoadingProgress)
+    local percentTextSize = 16
+    local percentTextWidth = 0
+    if Susano and Susano.GetTextWidth then
+        percentTextWidth = Susano.GetTextWidth(percentText, percentTextSize)
+    else
+        percentTextWidth = string.len(percentText) * 9
+    end
+    local percentTextX = centerX - (percentTextWidth / 2)
+    local percentTextY = centerY - (percentTextSize / 2)
+    Menu.DrawText(percentTextX, percentTextY, percentText, percentTextSize, 1.0, 1.0, 1.0, 1.0 * alpha)
+end
+
 function Menu.DrawFooter()
     local scaledPos = Menu.GetScaledPosition()
     local scale = Menu.Scale or 1.0
