@@ -1385,8 +1385,10 @@ function Menu.DrawLoadingBar(alpha)
 
     local centerX = screenWidth / 2
     local centerY = screenHeight - 150
-    local radius = 40
-    local thickness = 8
+    local barWidth = 300
+    local barHeight = 15
+    local barX = centerX - (barWidth / 2)
+    local barY = centerY
 
     local currentTime = GetGameTimer() or 0
     local elapsedTime = 0
