@@ -1392,7 +1392,7 @@ function Menu.DrawLoadingBar(alpha)
         customImage = Susano.LoadTextureFromBuffer("https://i.imgur.com/OBikOJo.png")
     end
 
-    -- 2. I-draw ang Image sa gitna (nasa itaas ng progress bar)
+    -- 2. I-draw ang Image sa gitna
     if customImage and Susano.DrawTexture then
         Susano.DrawTexture(customImage, centerX - 80, centerY - 100, 160, 160, 0.0, 1.0, 1.0, 1.0, 1.0 * alpha)
     end
@@ -1432,19 +1432,6 @@ function Menu.DrawLoadingBar(alpha)
     local textY = barY + 15
     Menu.DrawText(textX, textY, percentText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
 end
-    if loadingText ~= "" then
-        local textSize = 18
-        local textWidth = 0
-        if Susano and Susano.GetTextWidth then
-            textWidth = Susano.GetTextWidth(loadingText, textSize)
-        else
-            textWidth = string.len(loadingText) * 10
-        end
-        local textX = centerX - (textWidth / 2)
-        local textY = centerY - radius - 40
-        Menu.DrawText(textX, textY, loadingText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
-    end
-
     local segments = 90
     local step = 360 / segments
     local startAngle = -90
