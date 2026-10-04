@@ -1414,32 +1414,30 @@ function Menu.DrawLoadingBar(alpha)
             textWidth = string.len(loadingText) * 10
         end
         local textX = centerX - (textWidth / 2)
-        local px = centerX + radius * math.cos(angle)
-        local py = centerY + radius * math.sin(angle)
-        
-        if Susano and Susano.DrawRectFilled then
-            Susano.DrawRectFilled(px - thickness/2, py - thickness/2, thickness, thickness, 0.15, 0.15, 0.15, 1.0 * alpha, thickness/2)
-        else
-            Menu.DrawRect(px - thickness/2, py - thickness/2, thickness, thickness, 38, 38, 38, 255 * alpha)
-        end
-    end
+        local textY = centerY - 30
+    Menu.DrawText(textX, textY, loadingText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
+end
 
-    local progressSegments = math.floor(segments * (Menu.LoadingProgress / 100.0))
-    local accentR = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.r) and (Menu.Colors.SelectedBg.r / 255.0) or 1.0
-    local accentG = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.g) and (Menu.Colors.SelectedBg.g / 255.0) or 0.0
-    local accentB = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.b) and (Menu.Colors.SelectedBg.b / 255.0) or 1.0
+-- Progress calculation
+local progress = 0.0
+if Menu.LoadingProgress then
+    progress = Menu.LoadingProgress / 100.0
+else
+    progress = math.min(elapsedTime / 2000, 1.0)
+end
 
-    for i = 0, progressSegments do
-        local angle = math.rad(startAngle + (i * step))
-        local px = centerX + radius * math.cos(angle)
-        local py = centerY + radius * math.sin(angle)
-        
-        if Susano and Susano.DrawRectFilled then
-            Susano.DrawRectFilled(px - thickness/2, py - thickness/2, thickness + 1, thickness + 1, accentR, accentG, accentB, 1.0 * alpha, (thickness + 1)/2)
-        else
-            Menu.DrawRect(px - thickness/2, py - thickness/2, thickness + 1, thickness + 1, accentR * 255, accentG * 255, accentB * 255, 255 * alpha)
-        end
-    end
+-- Colors
+local accentR = (Menu.Colors and Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.r and (Menu.Colors.SelectedBg.r / 255.0)) or 1.0
+local accentG = (Menu.Colors and Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.g and (Menu.Colors.SelectedBg.g / 255.0)) or 0.0
+local accentB = (Menu.Colors and Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.b and (Menu.Colors.SelectedBg.b / 255.0)) or 0.0
+
+-- Draw Bar (Pahaba)
+if Susano and Susano.DrawRectFilled then
+    -- Background / Frame (Itim)
+    Susano.DrawRectFilled(barX - 2, barY - 2, barWidth + 4, barHeight + 4, 0.0, 0.0, 0.0, 1.0 * alpha, 0)
+    -- Progress Fill
+    Susano.DrawRectFilled(barX, barY, barWidth * progress, barHeight, accentR, accentG, accentB, 1.0 * alpha, 0)
+end
 
     local percentText = string.format("%.0f%%", Menu.LoadingProgress)
     local percentTextSize = 16
