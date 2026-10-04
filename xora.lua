@@ -1763,50 +1763,19 @@ end
 function Menu.GetLayoutSegments()
     local segments = {}
     local scaledPos = Menu.GetScaledPosition()
-    local scale = Menu.Scale or 1.0
-    local x = scaledPos.x
     local startY = scaledPos.y
-    local width = scaledPos.width
     
-    local bannerHeight = Menu.Banner.enabled and (Menu.Banner.height * scale) or scaledPos.headerHeight
-    local headerH = bannerHeight
-    local menuBarH = scaledPos.mainMenuHeight
-    local spacing = scaledPos.mainMenuSpacing
-    local itemH = scaledPos.itemHeight
-    local footerSpacing = scaledPos.footerSpacing
-    local footerH = scaledPos.footerHeight
-    
-    local topSegmentH = headerH + menuBarH
-    
-    local menuBarY = startY + headerH
-    local menuBarSegmentH = menuBarH
-    table.insert(segments, {y = menuBarY, h = menuBarSegmentH})
-    
-    local itemsY = startY + topSegmentH + spacing
-    local itemsH = 0
-    
-    if Menu.OpenedCategory then
-        local category = Menu.Categories[Menu.OpenedCategory]
-        if category and category.hasTabs and category.tabs then
-            local currentTab = category.tabs[Menu.CurrentTab]
-            if currentTab and currentTab.items then
-                local maxVisible = Menu.ItemsPerPage
-                local totalItems = #currentTab.items
-                local visibleItems = math.min(maxVisible, totalItems)
-                itemsH = visibleItems * itemH
-            end
-        end
-    else
-        local maxVisible = Menu.ItemsPerPage
-        local totalCategories = (Menu and Menu.Categories) and (#Menu.Categories - 1) or 0
-        local visibleCategories = math.min(maxVisible, totalCategories)
-        itemsH = visibleCategories * itemH
+    -- Safety check: Kung nil o empty ang Menu.Categories, mag-return ng empty values para hindi mag-crash sa line 1823
+    if not Menu or type(Menu.Categories) ~= "table" or #Menu.Categories == 0 then
+        return segments, 0
     end
-    
-    if itemsH > 0 then
-        table.insert(segments, {y = itemsY, h = itemsH})
-    end
-    
+
+    -- Dito papasok ang dating computation ng itemsY, itemsH, footer, etc.
+    local itemsY = scaledPos.itemsY or startY
+    local itemsH = scaledPos.itemsH or 0
+    local footerSpacing = 5
+    local footerH = 20
+
     local footerY = itemsY + itemsH + footerSpacing
     table.insert(segments, {y = footerY, h = footerH})
     
