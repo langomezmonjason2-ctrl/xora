@@ -41,7 +41,8 @@ Menu.SelectingBind = false
 Menu.BindingItem = nil
 Menu.BindingKey = nil
 Menu.BindingKeyName = nil
-
+Menu.Categories = {}
+Menu.TopLevelTabs = Menu.TopLevelTabs or {}
 Menu.ShowKeybinds = false
 
 
@@ -3002,8 +3003,8 @@ function Menu.DrawInputWindow()
     end
 end
 
-if Menu.Banner.enabled and Menu.Banner.imageUrl then
-    Menu.LoadBannerTexture(Menu.Banner.imageUrl)
+if Menu.UpdateCategoriesFromTopTab then
+    Menu.UpdateCategoriesFromTopTab()
 end
 
 
