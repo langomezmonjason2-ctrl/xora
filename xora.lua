@@ -1375,7 +1375,7 @@ end
 
 function Menu.DrawLoadingBar(alpha)
     if alpha <= 0 then return end
-
+    
     local screenWidth = 1920
     local screenHeight = 1080
     if Susano and Susano.GetScreenWidth and Susano.GetScreenHeight then
@@ -1384,101 +1384,37 @@ function Menu.DrawLoadingBar(alpha)
     end
 
     local centerX = screenWidth / 2
-    local centerY = screenHeight - 180
+    local centerY = screenHeight - 150
+    local radius = 40
+    local thickness = 8
 
-    -- 1. I-load ang image mula sa Imgur
-    local customImage = nil
-    if Susano and Susano.LoadTextureFromBuffer then
-        customImage = Susano.LoadTextureFromBuffer("https://i.imgur.com/OBikOJo.png")
+    local currentTime = GetGameTimer() or 0
+    local elapsedTime = 0
+    if Menu.LoadingStartTime then
+        elapsedTime = currentTime - Menu.LoadingStartTime
     end
 
-    -- 2. I-draw ang Image sa gitna (nasa itaas ng progress bar)
-    if customImage and Susano.DrawTexture then
-        Susano.DrawTexture(customImage, centerX - 80, centerY - 100, 160, 160, 0.0, 1.0, 1.0, 1.0, 1.0 * alpha)
-    end
-
-    -- 3. Kalkulahin ang progress percentage base sa LoadingProgress o sa oras
-    local progress = 0
-    if Menu.LoadingProgress then
-        progress = math.min(math.max(Menu.LoadingProgress / 100.0, 0.0), 1.0)
+    local loadingText = ""
+    if elapsedTime < 1000 then
+        loadingText = "Injecting"
+    elseif elapsedTime < 2000 then
+        loadingText = "Have Fun !"
     else
-        local currentTime = GetGameTimer() or 0
-        local elapsedTime = 0
-        if Menu.LoadingStartTime then
-            elapsedTime = currentTime - Menu.LoadingStartTime
-        end
-        local duration = 3000 
-        progress = math.min(math.max(elapsedTime / duration, 0.0), 1.0)
-    end
-    
-    local percentText = string.format("%.0f%%", progress * 100)
-
-    -- 4. Pahalabang Progress Bar sa Baba ng Image
-    local barWidth = 200
-    local barHeight = 10
-    local barX = centerX - (barWidth / 2)
-    local barY = centerY + 80
-
-    if Susano and Susano.DrawRectFilled then
-        Susano.DrawRectFilled(barX, barY, barWidth, barHeight, 0.1, 0.1, 0.1, 0.8 * alpha, 2.0)
-        Susano.DrawRectFilled(barX, barY, barWidth * progress, barHeight, 1.0, 0.0, 0.2, 1.0 * alpha, 2.0)
-    else
-        Menu.DrawRect(barX, barY, barWidth, barHeight, 20, 20, 20, 200 * alpha)
-        Menu.DrawRect(barX, barY, barWidth * progress, barHeight, 255, 0, 50, 255 * alpha)
+        loadingText = "Have Fun !"
     end
 
-    -- 5. Percentage Text sa ilalim ng pahabang bar
-    local textSize = 16
-    local textWidth = 30
-    if Susano and Susano.GetTextWidth then
-        textWidth = Susano.GetTextWidth(percentText, textSize)
-    end
-    local textX = centerX - (textWidth / 2)
-    local textY = barY + 15
-    Menu.DrawText(textX, textY, percentText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
-end
-   
-    for i = 0, segments do
-        local angle = math.rad(startAngle + (i * step))
-        local px = centerX + radius * math.cos(angle)
-        local py = centerY + radius * math.sin(angle)
-        
-        if Susano and Susano.DrawRectFilled then
-            Susano.DrawRectFilled(px - thickness/2, py - thickness/2, thickness, thickness, 0.15, 0.15, 0.15, 1.0 * alpha, thickness/2)
+    if loadingText ~= "" then
+        local textSize = 18
+        local textWidth = 0
+        if Susano and Susano.GetTextWidth then
+            textWidth = Susano.GetTextWidth(loadingText, textSize)
         else
-            Menu.DrawRect(px - thickness/2, py - thickness/2, thickness, thickness, 38, 38, 38, 255 * alpha)
+            textWidth = string.len(loadingText) * 10
         end
+        local textX = centerX - (textWidth / 2)
+        local textY = centerY - radius - 40
+        Menu.DrawText(textX, textY, loadingText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
     end
-
-    local progressSegments = math.floor(segments * (Menu.LoadingProgress / 100.0))
-    local accentR = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.r) and (Menu.Colors.SelectedBg.r / 255.0) or 1.0
-    local accentG = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.g) and (Menu.Colors.SelectedBg.g / 255.0) or 0.0
-    local accentB = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.b) and (Menu.Colors.SelectedBg.b / 255.0) or 1.0
-
-    for i = 0, progressSegments do
-        local angle = math.rad(startAngle + (i * step))
-        local px = centerX + radius * math.cos(angle)
-        local py = centerY + radius * math.sin(angle)
-        
-        if Susano and Susano.DrawRectFilled then
-            Susano.DrawRectFilled(px - thickness/2, py - thickness/2, thickness + 1, thickness + 1, accentR, accentG, accentB, 1.0 * alpha, (thickness + 1)/2)
-        else
-            Menu.DrawRect(px - thickness/2, py - thickness/2, thickness + 1, thickness + 1, accentR * 255, accentG * 255, accentB * 255, 255 * alpha)
-        end
-    end
-
-    local percentText = string.format("%.0f%%", Menu.LoadingProgress)
-    local percentTextSize = 16
-    local percentTextWidth = 0
-    if Susano and Susano.GetTextWidth then
-        percentTextWidth = Susano.GetTextWidth(percentText, percentTextSize)
-    else
-        percentTextWidth = string.len(percentText) * 9
-    end
-    local percentTextX = centerX - (percentTextWidth / 2)
-    local percentTextY = centerY - (percentTextSize / 2)
-    Menu.DrawText(percentTextX, percentTextY, percentText, percentTextSize, 1.0, 1.0, 1.0, 1.0 * alpha)
-end
 function Menu.DrawFooter()
     local scaledPos = Menu.GetScaledPosition()
     local scale = Menu.Scale or 1.0
