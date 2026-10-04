@@ -41,8 +41,7 @@ Menu.SelectingBind = false
 Menu.BindingItem = nil
 Menu.BindingKey = nil
 Menu.BindingKeyName = nil
-Menu.Categories = {}
-Menu.TopLevelTabs = Menu.TopLevelTabs or {}
+
 Menu.ShowKeybinds = false
 
 
@@ -1386,10 +1385,8 @@ function Menu.DrawLoadingBar(alpha)
 
     local centerX = screenWidth / 2
     local centerY = screenHeight - 150
-    local radius = 90
-    local thickness = 12
-    local barX = centerX - (barWidth / 2)
-    local barY = centerY
+    local radius = 40
+    local thickness = 8
 
     local currentTime = GetGameTimer() or 0
     local elapsedTime = 0
@@ -1415,30 +1412,55 @@ function Menu.DrawLoadingBar(alpha)
             textWidth = string.len(loadingText) * 10
         end
         local textX = centerX - (textWidth / 2)
-        local textY = centerY - 30
-    Menu.DrawText(textX, textY, loadingText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
-end
+        local textY = centerY - radius - 40
+        Menu.DrawText(textX, textY, loadingText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
+    end
 
--- Progress calculation
-local progress = 0.0
-if Menu.LoadingProgress then
-    progress = Menu.LoadingProgress / 100.0
-else
-    progress = math.min(elapsedTime / 2000, 1.0)
-end
+    local segments = 90
+    local step = 360 / segments
+    local startAngle = -90
 
--- Colors
-local accentR = (Menu.Colors and Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.r and (Menu.Colors.SelectedBg.r / 255.0)) or 1.0
-local accentG = (Menu.Colors and Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.g and (Menu.Colors.SelectedBg.g / 255.0)) or 0.0
-local accentB = (Menu.Colors and Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.b and (Menu.Colors.SelectedBg.b / 255.0)) or 0.0
+    for i = 0, segments do
+        local angle = math.rad(startAngle + (i * step))
+        local px = centerX + radius * math.cos(angle)
+        local py = centerY + radius * math.sin(angle)
+        local outlineSize = thickness + 4
+        
+        if Susano and Susano.DrawRectFilled then
+            Susano.DrawRectFilled(px - outlineSize/2, py - outlineSize/2, outlineSize, outlineSize, 0.0, 0.0, 0.0, 1.0 * alpha, outlineSize/2)
+        else
+            Menu.DrawRect(px - outlineSize/2, py - outlineSize/2, outlineSize, outlineSize, 0, 0, 0, 255 * alpha)
+        end
+    end
 
--- Draw Bar (Pahaba)
-if Susano and Susano.DrawRectFilled then
-    -- Background / Frame (Itim)
-    Susano.DrawRectFilled(barX - 2, barY - 2, barWidth + 4, barHeight + 4, 0.0, 0.0, 0.0, 1.0 * alpha, 0)
-    -- Progress Fill
-    Susano.DrawRectFilled(barX, barY, barWidth * progress, barHeight, accentR, accentG, accentB, 1.0 * alpha, 0)
-end
+    for i = 0, segments do
+        local angle = math.rad(startAngle + (i * step))
+        local px = centerX + radius * math.cos(angle)
+        local py = centerY + radius * math.sin(angle)
+        
+        if Susano and Susano.DrawRectFilled then
+            Susano.DrawRectFilled(px - thickness/2, py - thickness/2, thickness, thickness, 0.15, 0.15, 0.15, 1.0 * alpha, thickness/2)
+        else
+            Menu.DrawRect(px - thickness/2, py - thickness/2, thickness, thickness, 38, 38, 38, 255 * alpha)
+        end
+    end
+
+    local progressSegments = math.floor(segments * (Menu.LoadingProgress / 100.0))
+    local accentR = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.r) and (Menu.Colors.SelectedBg.r / 255.0) or 1.0
+    local accentG = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.g) and (Menu.Colors.SelectedBg.g / 255.0) or 0.0
+    local accentB = (Menu.Colors.SelectedBg and Menu.Colors.SelectedBg.b) and (Menu.Colors.SelectedBg.b / 255.0) or 1.0
+
+    for i = 0, progressSegments do
+        local angle = math.rad(startAngle + (i * step))
+        local px = centerX + radius * math.cos(angle)
+        local py = centerY + radius * math.sin(angle)
+        
+        if Susano and Susano.DrawRectFilled then
+            Susano.DrawRectFilled(px - thickness/2, py - thickness/2, thickness + 1, thickness + 1, accentR, accentG, accentB, 1.0 * alpha, (thickness + 1)/2)
+        else
+            Menu.DrawRect(px - thickness/2, py - thickness/2, thickness + 1, thickness + 1, accentR * 255, accentG * 255, accentB * 255, 255 * alpha)
+        end
+    end
 
     local percentText = string.format("%.0f%%", Menu.LoadingProgress)
     local percentTextSize = 16
@@ -1763,19 +1785,50 @@ end
 function Menu.GetLayoutSegments()
     local segments = {}
     local scaledPos = Menu.GetScaledPosition()
+    local scale = Menu.Scale or 1.0
+    local x = scaledPos.x
     local startY = scaledPos.y
+    local width = scaledPos.width
     
-    -- Safety check: Kung nil o empty ang Menu.Categories, mag-return ng empty values para hindi mag-crash sa line 1823
-    if not Menu or type(Menu.Categories) ~= "table" or #Menu.Categories == 0 then
-        return segments, 0
+    local bannerHeight = Menu.Banner.enabled and (Menu.Banner.height * scale) or scaledPos.headerHeight
+    local headerH = bannerHeight
+    local menuBarH = scaledPos.mainMenuHeight
+    local spacing = scaledPos.mainMenuSpacing
+    local itemH = scaledPos.itemHeight
+    local footerSpacing = scaledPos.footerSpacing
+    local footerH = scaledPos.footerHeight
+    
+    local topSegmentH = headerH + menuBarH
+    
+    local menuBarY = startY + headerH
+    local menuBarSegmentH = menuBarH
+    table.insert(segments, {y = menuBarY, h = menuBarSegmentH})
+    
+    local itemsY = startY + topSegmentH + spacing
+    local itemsH = 0
+    
+    if Menu.OpenedCategory then
+        local category = Menu.Categories[Menu.OpenedCategory]
+        if category and category.hasTabs and category.tabs then
+            local currentTab = category.tabs[Menu.CurrentTab]
+            if currentTab and currentTab.items then
+                local maxVisible = Menu.ItemsPerPage
+                local totalItems = #currentTab.items
+                local visibleItems = math.min(maxVisible, totalItems)
+                itemsH = visibleItems * itemH
+            end
+        end
+    else
+        local maxVisible = Menu.ItemsPerPage
+        local totalCategories = #Menu.Categories - 1
+        local visibleCategories = math.min(maxVisible, totalCategories)
+        itemsH = visibleCategories * itemH
     end
-
-    -- Dito papasok ang dating computation ng itemsY, itemsH, footer, etc.
-    local itemsY = scaledPos.itemsY or startY
-    local itemsH = scaledPos.itemsH or 0
-    local footerSpacing = 5
-    local footerH = 20
-
+    
+    if itemsH > 0 then
+        table.insert(segments, {y = itemsY, h = itemsH})
+    end
+    
     local footerY = itemsY + itemsH + footerSpacing
     table.insert(segments, {y = footerY, h = footerH})
     
@@ -2972,8 +3025,8 @@ function Menu.DrawInputWindow()
     end
 end
 
-if Menu.UpdateCategoriesFromTopTab then
-    Menu.UpdateCategoriesFromTopTab()
+if Menu.Banner.enabled and Menu.Banner.imageUrl then
+    Menu.LoadBannerTexture(Menu.Banner.imageUrl)
 end
 
 
