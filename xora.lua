@@ -1375,7 +1375,7 @@ end
 
 function Menu.DrawLoadingBar(alpha)
     if alpha <= 0 then return end
-    
+
     local screenWidth = 1920
     local screenHeight = 1080
     if Susano and Susano.GetScreenWidth and Susano.GetScreenHeight then
@@ -1384,24 +1384,54 @@ function Menu.DrawLoadingBar(alpha)
     end
 
     local centerX = screenWidth / 2
-    local centerY = screenHeight - 150
-    local radius = 40
-    local thickness = 8
+    local centerY = screenHeight - 180
 
+    -- 1. I-load ang image mula sa Imgur
+    local customImage = nil
+    if Susano and Susano.LoadTextureFromBuffer then
+        customImage = Susano.LoadTextureFromBuffer("https://i.imgur.com/OBikOJo.png")
+    end
+
+    -- 2. I-draw ang Image sa gitna (nasa itaas ng progress bar)
+    if customImage and Susano.DrawTexture then
+        Susano.DrawTexture(customImage, centerX - 80, centerY - 100, 160, 160, 0.0, 1.0, 1.0, 1.0, 1.0 * alpha)
+    end
+
+    -- 3. Kalkulahin ang progress percentage
     local currentTime = GetGameTimer() or 0
     local elapsedTime = 0
     if Menu.LoadingStartTime then
         elapsedTime = currentTime - Menu.LoadingStartTime
     end
+    
+    local duration = 3000 
+    local progress = math.min(math.max(elapsedTime / duration, 0.0), 1.0)
+    local percentText = math.floor(progress * 100) .. "%"
 
-    local loadingText = ""
-    if elapsedTime < 1000 then
-        loadingText = "Injecting"
-    elseif elapsedTime < 2000 then
-        loadingText = "Have Fun !"
+    -- 4. Pahalabang Progress Bar sa Baba ng Image
+    local barWidth = 200
+    local barHeight = 10
+    local barX = centerX - (barWidth / 2)
+    local barY = centerY + 80
+
+    if Susano and Susano.DrawRectFilled then
+        Susano.DrawRectFilled(barX, barY, barWidth, barHeight, 0.1, 0.1, 0.1, 0.8 * alpha, 2.0)
+        Susano.DrawRectFilled(barX, barY, barWidth * progress, barHeight, 1.0, 0.0, 0.2, 1.0 * alpha, 2.0)
     else
-        loadingText = "Have Fun !"
+        Menu.DrawRect(barX, barY, barWidth, barHeight, 20, 20, 20, 200 * alpha)
+        Menu.DrawRect(barX, barY, barWidth * progress, barHeight, 255, 0, 50, 255 * alpha)
     end
+
+    -- 5. Percentage Text sa ilalim ng pahabang bar
+    local textSize = 16
+    local textWidth = 30
+    if Susano and Susano.GetTextWidth then
+        textWidth = Susano.GetTextWidth(percentText, textSize)
+    end
+    local textX = centerX - (textWidth / 2)
+    local textY = barY + 15
+    Menu.DrawText(textX, textY, percentText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
+end
 
     if loadingText ~= "" then
         local textSize = 18
