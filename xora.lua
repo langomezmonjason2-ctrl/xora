@@ -1473,7 +1473,7 @@ end
     local percentTextX = centerX - (percentTextWidth / 2)
     local percentTextY = centerY - (percentTextSize / 2)
     Menu.DrawText(percentTextX, percentTextY, percentText, percentTextSize, 1.0, 1.0, 1.0, 1.0 * alpha)
-
+end
 function Menu.DrawFooter()
     local scaledPos = Menu.GetScaledPosition()
     local scale = Menu.Scale or 1.0
