@@ -1385,8 +1385,8 @@ function Menu.DrawLoadingBar(alpha)
 
     local centerX = screenWidth / 2
     local centerY = screenHeight - 150
-    local barWidth = 300
-    local barHeight = 15
+    local radius = 90
+    local thickness = 12
     local barX = centerX - (barWidth / 2)
     local barY = centerY
 
