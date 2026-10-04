@@ -1432,23 +1432,7 @@ function Menu.DrawLoadingBar(alpha)
     local textY = barY + 15
     Menu.DrawText(textX, textY, percentText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
 end
-    local segments = 90
-    local step = 360 / segments
-    local startAngle = -90
-
-    for i = 0, segments do
-        local angle = math.rad(startAngle + (i * step))
-        local px = centerX + radius * math.cos(angle)
-        local py = centerY + radius * math.sin(angle)
-        local outlineSize = thickness + 4
-        
-        if Susano and Susano.DrawRectFilled then
-            Susano.DrawRectFilled(px - outlineSize/2, py - outlineSize/2, outlineSize, outlineSize, 0.0, 0.0, 0.0, 1.0 * alpha, outlineSize/2)
-        else
-            Menu.DrawRect(px - outlineSize/2, py - outlineSize/2, outlineSize, outlineSize, 0, 0, 0, 255 * alpha)
-        end
-    end
-
+   
     for i = 0, segments do
         local angle = math.rad(startAngle + (i * step))
         local px = centerX + radius * math.cos(angle)
