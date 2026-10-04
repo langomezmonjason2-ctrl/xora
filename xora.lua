@@ -1432,7 +1432,6 @@ function Menu.DrawLoadingBar(alpha)
     local textY = barY + 15
     Menu.DrawText(textX, textY, percentText, textSize, 1.0, 1.0, 1.0, 1.0 * alpha)
 end
-
     if loadingText ~= "" then
         local textSize = 18
         local textWidth = 0
