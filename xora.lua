@@ -1392,21 +1392,26 @@ function Menu.DrawLoadingBar(alpha)
         customImage = Susano.LoadTextureFromBuffer("https://i.imgur.com/OBikOJo.png")
     end
 
-    -- 2. I-draw ang Image sa gitna
+    -- 2. I-draw ang Image sa gitna (nasa itaas ng progress bar)
     if customImage and Susano.DrawTexture then
         Susano.DrawTexture(customImage, centerX - 80, centerY - 100, 160, 160, 0.0, 1.0, 1.0, 1.0, 1.0 * alpha)
     end
 
-    -- 3. Kalkulahin ang progress percentage
-    local currentTime = GetGameTimer() or 0
-    local elapsedTime = 0
-    if Menu.LoadingStartTime then
-        elapsedTime = currentTime - Menu.LoadingStartTime
+    -- 3. Kalkulahin ang progress percentage base sa LoadingProgress o sa oras
+    local progress = 0
+    if Menu.LoadingProgress then
+        progress = math.min(math.max(Menu.LoadingProgress / 100.0, 0.0), 1.0)
+    else
+        local currentTime = GetGameTimer() or 0
+        local elapsedTime = 0
+        if Menu.LoadingStartTime then
+            elapsedTime = currentTime - Menu.LoadingStartTime
+        end
+        local duration = 3000 
+        progress = math.min(math.max(elapsedTime / duration, 0.0), 1.0)
     end
     
-    local duration = 3000 
-    local progress = math.min(math.max(elapsedTime / duration, 0.0), 1.0)
-    local percentText = math.floor(progress * 100) .. "%"
+    local percentText = string.format("%.0f%%", progress * 100)
 
     -- 4. Pahalabang Progress Bar sa Baba ng Image
     local barWidth = 200
